@@ -4,136 +4,14 @@
     <title>Wanderer Map</title>
     <meta name="viewport" content="initial-scale=1.0">
     <meta charset="utf-8">
-    <style>
-      html, body {
-        height: 100%;
-        margin: 0;
-        padding: 0;
-      }
-
-      .map {
-        height: 560px;
-        width: 440px;
-      }
-    </style>
+    <link rel="stylesheet" type="text/css" href="map.styles.css"/>
   </head>
   <body>
+    <button class="start-button">Start</button>
     <div class="map"></div>
-    <script>
-      function initMap() { 
-        const Minsk = new google.maps.LatLng(53.9, 27.55);
-        const controlPanelOptions = {
-            zoomControl: true,
-            // zoomControlOptions: {
-            //   position: google.maps.ControlPosition.TOP_RIGHT,
-            // },
-            mapTypeControl: false,
-            scaleControl: true,
-            streetViewControl: false,
-            rotateControl: false,
-            fullscreenControl: false,
-        };
-        const mapContainer = document.querySelector('.map');
-        const map = new google.maps.Map(mapContainer,
-          {
-            // center: {
-            //   lat: 53.9,
-            //   lng: 27.55,
-            // },
-            center: Minsk,
-            zoom: 11,
-            gestureHandling: 'cooperative', // for mobile
-            // disableDefaultUI: true,
-            ...controlPanelOptions,
-          }
-        );
-        console.log(map);
-        map.addListener('click', (event) => {
-          placeMarkerAndPanTo(event.latLng, map);
-        }); 
-
-        google.maps.event.addDomListener(mapContainer, 'click', (event) => {
-          console.log(event);
-        });
-
-        const infoWindow = new google.maps.InfoWindow({ map });
-
-        // HTML5 geolocation
-        if (navigator.geolocation) {
-          navigator.geolocation.getCurrentPosition((position) => {
-            const currentPos = {
-              lat: position.coords.latitude,
-              lng: position.coords.longitude
-            };
-
-            // infoWindow.setPosition(currentPos);
-            infoWindow.setContent('You are here.');
-            // map.setCenter(currentPos);
-            // map.panTo(currentPos);
-            map.setZoom(13);
-
-            const personMarker = new google.maps.Marker(
-              {
-                map,
-                position: currentPos,
-                title: 'You are here',
-              }
-            );
-
-            personMarker.addListener('click', () => {
-              infoWindow.open(map, personMarker);
-            });
-            
-            // map.addListener('center_changed', () => {
-            //   window.setTimeout(() => {
-            //     map.panTo(personMarker.getPosition());
-            //   }, 5000);
-            // });
-
-            const directionAngle = Math.random() * 2 * Math.PI;
-            const r = 0.03
-
-            const targetMarkerPos = {
-              lat: currentPos.lat + r * Math.sin(directionAngle),
-              lng: currentPos.lng + 2 * r * Math.cos(directionAngle),
-            }
-            const targetMarker = new google.maps.Marker(
-              {
-                map,
-                position: targetMarkerPos,
-                title: 'It\'s your target',
-              }
-            )
-
-            map.setCenter(
-              {
-                lat: (targetMarkerPos.lat + currentPos.lat) / 2,
-                lng: (targetMarkerPos.lng + currentPos.lng) / 2,
-              }
-            )
-          }, () => {
-            handleLocationError(true, infoWindow, map.getCenter());
-          });
-        } else {
-          handleLocationError(false, infoWindow, map.getCenter());
-        }
-      }
-
-      function handleLocationError(browserHasGeolocation, infoWindow, currentPos) {
-        infoWindow.setPosition(currentPos);
-        infoWindow.setContent(browserHasGeolocation
-          ? 'Error: The Geolocation service failed.'
-          : 'Error: Your browser doesn\'t support geolocation.');
-      }
-
-      function placeMarkerAndPanTo(position, map) {
-        var marker = new google.maps.Marker({
-          position,
-          map
-        });
-        map.panTo(position);
-      }
-    </script>
+    <script src="controlPanelOptions.js"></script>
+    <script src="mapStyles.js"></script>
+    <script src="mapService.js"></script>
     <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyA8VbF53MdYHOoXnm4bly6kztjZ9YOycFo&callback=initMap&language=en"
     async defer></script>
   </body>
