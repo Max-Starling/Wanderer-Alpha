@@ -8,7 +8,6 @@ const createTarget = (map, currentPos, r) => {
 
   const targetMarkerIcon = {
     url: 'https://i.imgur.com/REOaN41.png',
-    size: new google.maps.Size(84, 120),
     scaledSize: new google.maps.Size(42, 60),
     origin: new google.maps.Point(0, 0),
     anchor: new google.maps.Point(0, 60)
@@ -33,8 +32,8 @@ const createTarget = (map, currentPos, r) => {
   return targetMarkerPos;
 };
 
-const onStart = (map, currentPos, r) => {
-  const targetMarkerPos = createTarget(map, currentPos, r);
+const onStartClick = (map, currentPos) => {
+  const targetMarkerPos = createTarget(map, currentPos, 0.03);
 
   const directionsRequest = {
     origin: currentPos,
@@ -48,9 +47,20 @@ const onStart = (map, currentPos, r) => {
 
   const directionsService = new google.maps.DirectionsService();
 
+  const dashedLineSymbol = {
+    path: 'M 0,-1 0,1',
+    strokeOpacity: 1,
+    scale: 1.7,
+  };
+
   const pathPolyline = new google.maps.Polyline({
     strokeColor: '#4F4F4F',
-    strokeOpacity: 1.0,
+    strokeOpacity: 0,
+    icons: [{
+      icon: dashedLineSymbol,
+      offset: '0',
+      repeat: '7px'
+    }],
     strokeWeight: 2,
   });
 
@@ -76,11 +86,6 @@ const handleLocationError = (browserHasGeolocation, infoWindow, currentPos) => {
     ? 'Error: The Geolocation service failed.'
     : 'Error: Your browser doesn\'t support geolocation.'
   );
-};
-
-const placeMarkerAndPanTo = (position, map) => {
-  const marker = new google.maps.Marker({ position, map });
-  map.panTo(position);
 };
 
 const startNavigation = (map) => {
@@ -111,7 +116,7 @@ const startNavigation = (map) => {
       });
 
       document.querySelector('.start-button').addEventListener('click', () => {
-        onStart(map, currentPos, 0.03);
+        onStartClick(map, currentPos);
       });
     }, () => {
       handleLocationError(true, infoWindow, map.getCenter());
@@ -122,6 +127,11 @@ const startNavigation = (map) => {
   } else {
     handleLocationError(false, infoWindow, map.getCenter());
   }
+};
+
+const placeMarkerAndPanTo = (position, map) => {
+  const marker = new google.maps.Marker({ position, map });
+  map.panTo(position);
 };
 
 function initMap() { 
