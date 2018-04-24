@@ -1,10 +1,18 @@
-const createTarget = (map, currentPos, r) => {
-  const directionAngle = Math.random() * 2 * Math.PI;
-
-  const targetMarkerPos = {
-    lat: currentPos.lat + r * Math.sin(directionAngle),
-    lng: currentPos.lng + 2 * r * Math.cos(directionAngle),
-  };
+const createTarget = (map, currentPos, targetPos) => {
+  let targetMarkerPos;
+  if (targetPos) {
+    targetMarkerPos = {
+      lat: targetPos.lat(),
+      lng: targetPos.lng(),
+    };
+  } else {
+    const r = 0.03;
+    const directionAngle = Math.random() * 2 * Math.PI;
+    targetMarkerPos = {
+      lat: currentPos.lat + r * Math.sin(directionAngle),
+      lng: currentPos.lng + 2 * r * Math.cos(directionAngle),
+    };
+  }
 
   const targetMarkerIcon = {
     url: 'https://i.imgur.com/REOaN41.png',
@@ -32,51 +40,24 @@ const createTarget = (map, currentPos, r) => {
   return targetMarkerPos;
 };
 
+let previousListener;
+
 const onStartClick = (map, currentPos) => {
-  const targetMarkerPos = createTarget(map, currentPos, 0.03);
+  let mode;
+  [].find.call(document.getElementsByName('mode-selector'),
+    (item, index) => (item.checked) && (mode = (index === 0) ? 'random': 'choice')
+  );
 
-  const directionsRequest = {
-    origin: currentPos,
-    destination: targetMarkerPos,
-    provideRouteAlternatives: true,
-    travelMode: 'WALKING',
-    unitSystem: google.maps.UnitSystem.METRIC,
-    // avoidTolls: true,
-    // region: 'BY',
-  };
-
-  const directionsService = new google.maps.DirectionsService();
-
-  const dashedLineSymbol = {
-    path: 'M 0,-1 0,1',
-    strokeOpacity: 1,
-    scale: 1.7,
-  };
-
-  const pathPolyline = new google.maps.Polyline({
-    strokeColor: '#4F4F4F',
-    strokeOpacity: 0,
-    icons: [{
-      icon: dashedLineSymbol,
-      offset: '0',
-      repeat: '7px'
-    }],
-    strokeWeight: 2,
-  });
-
-  const directionsDisplay = new google.maps.DirectionsRenderer({
-    suppressMarkers: true,
-    polylineOptions: pathPolyline,
-    preserveViewport: true,
-  });
-
-  directionsDisplay.setMap(map);
-  directionsService.route(directionsRequest, (result, status) => {
-    console.log(result);
-    if (status == 'OK') {
-      directionsDisplay.setDirections(result);
-    }
-  });
+  google.maps.event.removeListener(previousListener);
+  if (mode === 'random') {
+    const targetMarkerPos = createTarget(map, currentPos);
+    initDirectionsService(map, currentPos, targetMarkerPos);
+  } else if (mode === 'choice') {
+    previousListener = map.addListener('click', (event) => {
+      createTarget(map, currentPos, event.latLng);
+      initDirectionsService(map, currentPos, event.latLng);
+    });
+  }
 };
 
 
@@ -129,10 +110,10 @@ const startNavigation = (map) => {
   }
 };
 
-const placeMarkerAndPanTo = (position, map) => {
-  const marker = new google.maps.Marker({ position, map });
-  map.panTo(position);
-};
+// const placeMarkerAndPanTo = (position, map) => {
+//   const marker = new google.maps.Marker({ position, map });
+//   map.panTo(position);
+// };
 
 function initMap() { 
   const Minsk = new google.maps.LatLng(53.9, 27.55);
@@ -146,10 +127,6 @@ function initMap() {
       ...controlPanelOptions,
     }
   );
-
-  map.addListener('click', (event) => {
-    placeMarkerAndPanTo(event.latLng, map);
-  }); 
 
   google.maps.event.addDomListener(mapContainer, 'click', (event) => {
     console.log(event);
